@@ -1,0 +1,58 @@
+// auctionData.ts
+
+export const auctionBooks = [
+  {
+    id: "1",
+    title: "Atomic Habits",
+    author: "James Clear",
+    image: "https://m.media-amazon.com/images/I/91bYsX41DVL.jpg",
+    bids: 24,
+    currentBid: 380,
+    timeLeft: "2h 18m",
+  },
+  {
+    id: "2",
+    title: "The Psychology of Money",
+    author: "Morgan Housel",
+    image: "https://m.media-amazon.com/images/I/71g2ednj0JL.jpg",
+    bids: 18,
+    currentBid: 210,
+    timeLeft: "3h 45m",
+  },
+  {
+    id: "3",
+    title: "Rich Dad Poor Dad",
+    author: "Robert Kiyosaki",
+    image: "https://m.media-amazon.com/images/I/81bsw6fnUiL.jpg",
+    bids: 32,
+    currentBid: 450,
+    timeLeft: "5h 30m",
+  },
+  {
+    id: "4",
+    title: "Deep Work",
+    author: "Cal Newport",
+    image: "https://m.media-amazon.com/images/I/81JJ7fyyKyS.jpg",
+    bids: 14,
+    currentBid: 280,
+    timeLeft: "1h 05m",
+  },
+  {
+    id: "5",
+    title: "The Subtle Art",
+    author: "Mark Manson",
+    image: "https://m.media-amazon.com/images/I/71QKQ9mwV7L.jpg",
+    bids: 21,
+    currentBid: 300,
+    timeLeft: "4h 10m",
+  },
+  {
+    id: "6",
+    title: "Sapiens",
+    author: "Yuval Noah Harari",
+    image: "https://m.media-amazon.com/images/I/713jIoMO3UL.jpg",
+    bids: 26,
+    currentBid: 410,
+    timeLeft: "2h 55m",
+  },
+];
