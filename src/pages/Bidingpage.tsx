@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 import AuctionBidCard from "../components/AuctionBidCard";
 import AuctionBookDetails from "../components/AuctionBookDetails";
 import AuctionBookInfo from "../components/AuctionBookInfo";
+import { fetchAuctionBookById } from "../hooks/useAuctionBookDetails";
 
 const BidingPage = () => {
     const getBookIdFromUrl = () => {
@@ -21,10 +23,7 @@ const BidingPage = () => {
         const handlePopState = () => {
             const id = getBookIdFromUrl();
 
-            console.log(
-                "BidingPage - Book ID:",
-                id
-            );
+            console.log("BidingPage - Book ID:", id);
 
             setBookId(id);
         };
@@ -42,10 +41,64 @@ const BidingPage = () => {
         };
     }, []);
 
-    console.log(
-        "BidingPage bookId:",
-        bookId
-    );
+    const {
+        data: bookData,
+        isLoading,
+        isError,
+    } = useQuery({
+        queryKey: ["auction-book", bookId],
+        queryFn: () => fetchAuctionBookById(bookId!),
+        enabled: !!bookId,
+    });
+
+    // Get auction ID from API response
+    const auctionId = bookData?.auctionId?._id;
+
+    // Get current bid from API response
+    const currentHighestBid =
+        bookData?.auctionId?.currentBidPrice ??
+        bookData?.auctionId?.bidPrice ??
+        0;
+
+    console.log("Auction Book Data:", bookData);
+    console.log("Auction ID:", auctionId);
+    console.log("Current Highest Bid:", currentHighestBid);
+
+    if (!bookId) {
+        return (
+            <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-red-500">
+                Book ID is missing.
+            </div>
+        );
+    }
+
+    if (isLoading) {
+        return <div>Loading...</div>;
+    }
+
+    if (isError) {
+        return (
+            <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-red-500">
+                Failed to load auction book.
+            </div>
+        );
+    }
+
+    if (!bookData) {
+        return (
+            <div className="rounded-2xl border border-gray-200 bg-white p-6 text-center text-gray-500">
+                Book not found.
+            </div>
+        );
+    }
+
+    if (!auctionId) {
+        return (
+            <div className="rounded-2xl border border-gray-200 bg-white p-6 text-center text-gray-500">
+                Auction not available for this book.
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen">
@@ -54,33 +107,21 @@ const BidingPage = () => {
 
                     {/* Book Information */}
                     <div className="lg:col-span-7">
-                        {bookId ? (
-                            <AuctionBookInfo
-                                bookId={bookId}
-                            />
-                        ) : (
-                            <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-red-500">
-                                Book ID is missing.
-                            </div>
-                        )}
+                        <AuctionBookInfo
+                            bookId={bookId}
+                        />
                     </div>
 
                     {/* Bidding Card */}
                     <div className="lg:col-span-5">
-                        {bookId ? (
-                            <AuctionBidCard
-                                auctionId="6a8517dcfaa1d91f3883ce6e"
-                                bookId={bookId}
-                                // userId="6a82ef1af704d3b3471c4ef5"
-                                bookTitle="Harry Potter"
-                                currentHighestBid={320}
-                                auctionEndsIn="2d 14h 20m 45s"
-                            />
-                        ) : (
-                            <div className="rounded-2xl border border-gray-200 bg-white p-6 text-center text-gray-500">
-                                Unable to load bidding information.
-                            </div>
-                        )}
+                        <AuctionBidCard
+                            auctionId={auctionId}
+                            bookId={bookId}
+                            bookTitle="Book"
+                            currentHighestBid={
+                                currentHighestBid
+                            }
+                        />
                     </div>
                 </div>
             </div>

@@ -9,16 +9,25 @@ import {
 
 import { useAuctionBooks } from "../hooks/useAuctionBooks";
 
+interface Auction {
+    _id: string;
+    bookId: string;
+    bidPrice: number;
+    buyNowPrice: number;
+    duration: number;
+    startDate: string;
+    status: string;
+    currentBidPrice: number;
+    bidCount: number;
+}
+
 interface AuctionBook {
     _id: string;
     name: string;
     author: string;
-    coverImage: string;
-    currentBid?: number;
+    coverImage?: string;
     rentalPricePerWeek?: number;
-    timeLeft?: string;
-    bids?: number;
-    status?: string;
+    auction?: Auction;
 }
 
 const TrendingAuctionBooks = () => {
@@ -139,80 +148,87 @@ const TrendingAuctionBooks = () => {
                     auctionBooks.length > 0 && (
                         <div className="flex gap-10 overflow-x-auto overflow-y-hidden scroll-smooth py-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                             {auctionBooks.map(
-                                (book: AuctionBook) => (
-                                    <div
-                                        key={book._id}
-                                        className="w-[220px] flex-shrink-0 cursor-pointer"
-                                        onClick={() =>
-                                            handleBookClick(
-                                                book._id
-                                            )
-                                        }
-                                    >
-                                        <ProductCard
-                                            imageUrl={
-                                                book.coverImage
+                                (book: AuctionBook) => {
+
+                                    const auction = book.auction;
+
+                                    return (
+                                        <div
+                                            key={book._id}
+                                            className="w-[220px] flex-shrink-0 cursor-pointer"
+                                            onClick={() =>
+                                                handleBookClick(
+                                                    book._id
+                                                )
                                             }
-                                            title={
-                                                book.name
-                                            }
-                                            author={
-                                                book.author
-                                            }
-                                            priceText={`Current Bid ₹${
-                                                book.currentBid ??
-                                                book.rentalPricePerWeek ??
-                                                0
-                                            }`}
                                         >
-                                            {/* Auction Details */}
-                                            <div className="mb-3 space-y-2 text-sm text-gray-600">
+                                            <ProductCard
+                                                imageUrl={book.coverImage ?? "/images/book-placeholder.png"}
+                                                title={
+                                                    book.name
+                                                }
+                                                author={
+                                                    book.author
+                                                }
+                                                priceText={`Current Bid ₹${
+                                                    auction?.currentBidPrice ??
+                                                    auction?.bidPrice ??
+                                                    book.rentalPricePerWeek ??
+                                                    0
+                                                }`}
+                                            >
+                                                {/* Auction Details */}
+                                                <div className="mb-3 space-y-2 text-sm text-gray-600">
 
-                                                {/* Status */}
-                                                <div className="flex items-center justify-between">
-                                                    <span className="font-medium text-gray-500">
-                                                        Status
-                                                    </span>
+                                                    {/* Status */}
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="font-medium text-gray-500">
+                                                            Status
+                                                        </span>
 
-                                                    <span
-                                                        className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusClasses(
-                                                            book.status
-                                                        )}`}
-                                                    >
-                                                        {book.status ??
-                                                            "N/A"}
-                                                    </span>
+                                                        <span
+                                                            className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusClasses(
+                                                                auction?.status
+                                                            )}`}
+                                                        >
+                                                            {auction?.status ??
+                                                                "N/A"}
+                                                        </span>
+                                                    </div>
+
+                                                    {/* Time Left */}
+                                                    <p className="font-bold text-red-600">
+                                                        {auction?.status ===
+                                                        "live"
+                                                            ? `${auction.duration} days auction`
+                                                            : auction?.status ??
+                                                              "Auction unavailable"}
+                                                    </p>
+
+                                                    {/* Number of Bids */}
+                                                    <p>
+                                                        {auction?.bidCount ??
+                                                            0}{" "}
+                                                        bids
+                                                    </p>
                                                 </div>
 
-                                                {/* Time Left */}
-                                                <p className="font-bold text-red-600">
-                                                    {book.timeLeft ??
-                                                        "Live auction"}
-                                                </p>
-
-                                                {/* Number of Bids */}
-                                                <p>
-                                                    {book.bids ??
-                                                        0}{" "}
-                                                    bids
-                                                </p>
-                                            </div>
-
-                                            {/* Place Bid */}
-                                            <Rb_Button
-                                                className="primary w-full"
-                                                onClick={(e) =>
-                                                    handleBidClick(
-                                                        e,
-                                                        book._id
-                                                    )
-                                                }
-                                            >
-                                                Place Bid
-                                            </Rb_Button>
-                                        </ProductCard>
-                                    </div>
-                                )
+                                                {/* Place Bid */}
+                                                <Rb_Button
+                                                    className="primary w-full"
+                                                    onClick={(e) =>
+                                                        handleBidClick(
+                                                            e,
+                                                            book._id
+                                                        )
+                                                    }
+                                                >
+                                                    Place Bid
+                                                </Rb_Button>
+                                            </ProductCard>
+                                        </div>
+                                    );
+                                }
                             )}
                         </div>
                     )}
@@ -222,3 +238,4 @@ const TrendingAuctionBooks = () => {
 };
 
 export default TrendingAuctionBooks;
+

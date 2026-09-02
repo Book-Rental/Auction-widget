@@ -16,6 +16,7 @@ export interface AuctionDetails {
     status: string;
     createdAt?: string;
     updatedAt?: string;
+    currentBidPrice?: number;
 }
 
 /* =========================================================
@@ -73,7 +74,7 @@ export interface AuctionBidDetailsData {
    GET BOOK
 ========================================================= */
 
-const fetchAuctionBookById = async (
+export const fetchAuctionBookById = async (
     bookId: string
 ): Promise<AuctionBookDetailsData> => {
     const response = await fetch(
