@@ -19,6 +19,7 @@ import ReviewAuctionPage from "./pages/ReviewAuctionPage";
 
 import MyBids from "./components/MyBids";
 import OutBidPage from "./pages/OutbidCard";
+import BidDetailsPage from "./pages/BidDetailsPage";
 
 const queryClient = new QueryClient();
 
@@ -28,7 +29,8 @@ type View =
   | "bid-success"
   | "my-bids"
   | "outbid"
-  | "create-auction";
+  | "create-auction"
+  | "bids-details";
 
 type AppProps = {
   view?: View;
@@ -77,7 +79,9 @@ function App({ view }: AppProps) {
       {currentView === "my-bids" && (
         <MyBids />
       )}
-
+ {currentView === "bids-details" && (
+        <BidDetailsPage />
+      )}
       {/* ---------------- Outbid ---------------- */}
 
       {currentView === "outbid" && (
@@ -99,6 +103,7 @@ function App({ view }: AppProps) {
           {step === "review" && (
             <ReviewAuctionPage />
           )}
+          
 
           {step === "publish" && (
             <PublishAuctionPage />

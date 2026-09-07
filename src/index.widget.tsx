@@ -4,7 +4,7 @@ import "./index.css";
 
 export interface AuctionWidgetOptions {
   containerElementId: string;
-view: "auction" | "bidding" | "bid-success";
+view: "auction" | "bidding" | "bid-success" | "my-bids" |"bids-details";
 }
 
 declare global {
