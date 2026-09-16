@@ -22,20 +22,48 @@ export interface MyBidBook {
   author?: string;
 }
 
+export interface MyBidOrder {
+  _id: string;
+  orderNumber?: string;
+  orderType?: string;
+  userId?: string;
+  items?: {
+    bookId: string;
+    sellerId?: string;
+    quantity?: number;
+    itemStatus?: string;
+    rental?: unknown;
+    deposit?: unknown;
+    shipmentDetails?: unknown[];
+    _id?: string;
+  }[];
+  orderStatus?: string;
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface MyBid {
   auction: MyBidAuction;
+
   book: MyBidBook;
+
   bid: {
     bidId: string;
     bidPrice: number;
+    bidStatus?: string;
   };
+
+  // API returns "order", not "orderData"
+  order?: MyBidOrder | null;
 }
 
 const fetchMyBids = async (
-  userId: string
+  userId: string,
+  status: "live" | "won" | "lost"
 ): Promise<MyBid[]> => {
   const response = await fetch(
-    `${API_URL}/api/auction/user/${userId}/bids`,
+    `${API_URL}/api/auction/user/${userId}/bids?status=${status}`,
     {
       method: "GET",
       credentials: "include",
@@ -55,17 +83,20 @@ const fetchMyBids = async (
 
   const data = await response.json();
 
-  console.log("My bids API response:", data);
+  console.log(`My ${status} bids API response:`, data);
 
   return Array.isArray(data)
     ? data
     : data?.data || [];
 };
 
-export const useMyBids = (userId: string) => {
+export const useMyBids = (
+  userId: string,
+  status: "live" | "won" | "lost"
+) => {
   return useQuery({
-    queryKey: ["my-bids", userId],
-    queryFn: () => fetchMyBids(userId),
+    queryKey: ["my-bids", userId, status],
+    queryFn: () => fetchMyBids(userId, status),
     enabled: Boolean(userId),
     staleTime: 30 * 1000,
   });
