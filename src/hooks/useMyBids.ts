@@ -60,7 +60,7 @@ export interface MyBid {
 
 const fetchMyBids = async (
   userId: string,
-  status: "live" | "won" | "lost"
+   status: "live" | "won" | "lost" | "cancelled"
 ): Promise<MyBid[]> => {
   const response = await fetch(
     `${API_URL}/api/auction/user/${userId}/bids?status=${status}`,
@@ -92,7 +92,7 @@ const fetchMyBids = async (
 
 export const useMyBids = (
   userId: string,
-  status: "live" | "won" | "lost"
+  status: "live" | "won" | "lost" | "cancelled"
 ) => {
   return useQuery({
     queryKey: ["my-bids", userId, status],

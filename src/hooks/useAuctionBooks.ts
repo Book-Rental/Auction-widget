@@ -2,11 +2,36 @@ import { useQuery } from "@tanstack/react-query";
 
 const API_URL = "https://be-book-rental.onrender.com";
 
+export interface AuctionDetails {
+    _id: string;
+    bookId: string;
+    bidPrice: number;
+    buyNowPrice?: number;
+    duration: number;
+    startDate: string;
+    createdAt?: string;
+
+    isActive: boolean;
+
+    status:
+        | "upcoming"
+        | "live"
+        | "completed"
+        | "cancelled";
+
+    currentBidPrice?: number;
+    highestBid?: number | null;
+    highestBidder?: string | null;
+    bidCount?: number;
+    order?: unknown | null;
+}
+
 export interface AuctionBook {
     _id: string;
     name: string;
     author: string;
     coverImage: string;
+
     rentalPricePerWeek?: number;
     isAuction?: boolean;
 
@@ -14,6 +39,9 @@ export interface AuctionBook {
     bids?: number;
     timeLeft?: string;
     status?: string;
+
+    // API returns auction as an array
+    auction: AuctionDetails[];
 }
 
 const fetchAuctionBooks = async (): Promise<AuctionBook[]> => {
@@ -29,24 +57,6 @@ const fetchAuctionBooks = async (): Promise<AuctionBook[]> => {
 
     const result = await response.json();
 
-    /**
-     * Supports:
-     *
-     * 1. Direct array:
-     *
-     * [
-     *   {...},
-     *   {...}
-     * ]
-     *
-     * 2. Nested response:
-     *
-     * {
-     *   data: {
-     *     products: [...]
-     *   }
-     * }
-     */
     if (Array.isArray(result)) {
         return result;
     }

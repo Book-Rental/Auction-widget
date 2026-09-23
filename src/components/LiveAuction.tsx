@@ -7,28 +7,10 @@ import {
     Rb_LoadingSpinner,
 } from "@rentbook/rentbook-ui-lib";
 
-import { useAuctionBooks } from "../hooks/useAuctionBooks";
-
-interface Auction {
-    _id: string;
-    bookId: string;
-    bidPrice: number;
-    buyNowPrice: number;
-    duration: number;
-    startDate: string;
-    status: string;
-    currentBidPrice: number;
-    bidCount: number;
-}
-
-interface AuctionBook {
-    _id: string;
-    name: string;
-    author: string;
-    coverImage?: string;
-    rentalPricePerWeek?: number;
-    auction?: Auction;
-}
+import {
+    useAuctionBooks,
+    type AuctionBook,
+} from "../hooks/useAuctionBooks";
 
 const TrendingAuctionBooks = () => {
     const {
@@ -150,7 +132,12 @@ const TrendingAuctionBooks = () => {
                             {auctionBooks.map(
                                 (book: AuctionBook) => {
 
-                                    const auction = book.auction;
+                                    // Get only the active auction
+                                    const auction =
+                                        book.auction?.find(
+                                            (auction) =>
+                                                auction.isActive === true
+                                        );
 
                                     return (
                                         <div
@@ -163,13 +150,12 @@ const TrendingAuctionBooks = () => {
                                             }
                                         >
                                             <ProductCard
-                                                imageUrl={book.coverImage ?? "/images/book-placeholder.png"}
-                                                title={
-                                                    book.name
+                                                imageUrl={
+                                                    book.coverImage ??
+                                                    "/images/book-placeholder.png"
                                                 }
-                                                author={
-                                                    book.author
-                                                }
+                                                title={book.name}
+                                                author={book.author}
                                                 priceText={`Current Bid ₹${
                                                     auction?.currentBidPrice ??
                                                     auction?.bidPrice ??
@@ -238,4 +224,3 @@ const TrendingAuctionBooks = () => {
 };
 
 export default TrendingAuctionBooks;
-

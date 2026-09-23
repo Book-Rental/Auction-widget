@@ -16,6 +16,14 @@ interface Bid {
     bidPrice: number;
 }
 
+type AuctionStatus =
+    | "active"
+    | "cancelled"
+    | "completed"
+    | "expired"
+    | "pending"
+    | string;
+
 interface Auction {
     _id: string;
     bookId: string;
@@ -24,6 +32,8 @@ interface Auction {
     duration: number;
     startDate: string;
     currentBidPrice: number;
+    isActive: boolean;
+    status: AuctionStatus;
 }
 
 interface Book {
@@ -49,6 +59,94 @@ interface BidDetailsData {
     bids: Bid[];
     pagination: Pagination;
 }
+
+// Central place to control how each status looks & reads across the page
+const STATUS_CONFIG: Record<
+    string,
+    {
+        label: string;
+        badgeClass: string;
+        dotClass: string;
+        bannerClass: string;
+        bannerIconClass: string;
+        icon: string;
+        message: (a: Auction) => string;
+    }
+> = {
+    active: {
+        label: "Active",
+        badgeClass: "bg-green-50 text-green-700 ring-1 ring-green-200",
+        dotClass: "bg-green-500",
+        bannerClass: "border-green-200 bg-green-50",
+        bannerIconClass: "bg-green-100 text-green-600",
+        icon: "🟢",
+        message: () => "This auction is live and currently accepting bids.",
+    },
+    cancelled: {
+        label: "Cancelled",
+        badgeClass: "bg-red-50 text-red-700 ring-1 ring-red-200",
+        dotClass: "bg-red-500",
+        bannerClass: "border-red-200 bg-red-50",
+        bannerIconClass: "bg-red-100 text-red-600",
+        icon: "✕",
+        message: () =>
+            "This auction has been cancelled. Bidding is closed and no further bids can be placed or accepted.",
+    },
+    completed: {
+        label: "Completed",
+        badgeClass: "bg-blue-50 text-blue-700 ring-1 ring-blue-200",
+        dotClass: "bg-blue-500",
+        bannerClass: "border-blue-200 bg-blue-50",
+        bannerIconClass: "bg-blue-100 text-blue-600",
+        icon: "✓",
+        message: (a) =>
+            `This auction has ended. The winning bid was ₹${a.currentBidPrice.toLocaleString(
+                "en-IN"
+            )}.`,
+    },
+    expired: {
+        label: "Expired",
+        badgeClass: "bg-gray-100 text-gray-600 ring-1 ring-gray-200",
+        dotClass: "bg-gray-400",
+        bannerClass: "border-gray-200 bg-gray-50",
+        bannerIconClass: "bg-gray-200 text-gray-500",
+        icon: "⏱",
+        message: () =>
+            "This auction has expired without a completed sale.",
+    },
+    pending: {
+        label: "Pending",
+        badgeClass: "bg-amber-50 text-amber-700 ring-1 ring-amber-200",
+        dotClass: "bg-amber-500",
+        bannerClass: "border-amber-200 bg-amber-50",
+        bannerIconClass: "bg-amber-100 text-amber-600",
+        icon: "⏳",
+        message: () => "This auction has not started yet.",
+    },
+};
+
+const getStatusConfig = (status: string) =>
+    STATUS_CONFIG[status?.toLowerCase()] ?? {
+        label: status || "Unknown",
+        badgeClass: "bg-gray-100 text-gray-600 ring-1 ring-gray-200",
+        dotClass: "bg-gray-400",
+        bannerClass: "border-gray-200 bg-gray-50",
+        bannerIconClass: "bg-gray-200 text-gray-500",
+        icon: "•",
+        message: () => "",
+    };
+
+const StatusBadge = ({ status }: { status: string }) => {
+    const cfg = getStatusConfig(status);
+    return (
+        <span
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${cfg.badgeClass}`}
+        >
+            <span className={`h-1.5 w-1.5 rounded-full ${cfg.dotClass}`} />
+            {cfg.label}
+        </span>
+    );
+};
 
 const BidDetailsPage = () => {
     const auctionId = window.location.pathname.split("/").pop();
@@ -148,6 +246,8 @@ const BidDetailsPage = () => {
     }
 
     const { auction, book, bids, pagination } = data;
+    const isCancelled = auction.status?.toLowerCase() === "cancelled";
+    const statusCfg = getStatusConfig(auction.status);
 
     return (
         <div className="min-h-screen bg-gray-50 px-4 py-6 sm:px-6 lg:px-8">
@@ -156,22 +256,49 @@ const BidDetailsPage = () => {
                 <div className="mb-6">
                     <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
-                                Bid Details
-                            </h1>
+                            <div className="flex flex-wrap items-center gap-3">
+                                <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
+                                    Bid Details
+                                </h1>
+                                <StatusBadge status={auction.status} />
+                            </div>
 
                             <p className="mt-1 text-sm text-gray-500">
                                 View auction information and bidder rankings
                             </p>
                         </div>
-
                     </div>
                 </div>
+
+                {/* Status banner - prominent callout, e.g. for cancelled auctions */}
+                {statusCfg.message(auction) && (
+                    <div
+                        className={`mb-6 flex items-start gap-3 rounded-xl border p-4 ${statusCfg.bannerClass}`}
+                    >
+                        <div
+                            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-base font-bold ${statusCfg.bannerIconClass}`}
+                        >
+                            {statusCfg.icon}
+                        </div>
+                        <div>
+                            <p className="text-sm font-semibold text-gray-900">
+                                Auction {statusCfg.label}
+                            </p>
+                            <p className="mt-0.5 text-sm text-gray-600">
+                                {statusCfg.message(auction)}
+                            </p>
+                        </div>
+                    </div>
+                )}
 
                 {/* Book + Auction */}
                 <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
                     {/* Book Details */}
-                    <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200 lg:col-span-2">
+                    <div
+                        className={`rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200 lg:col-span-2 ${
+                            isCancelled ? "opacity-90" : ""
+                        }`}
+                    >
                         <div className="mb-5 flex items-center gap-3">
                             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-xl">
                                 📚
@@ -204,7 +331,9 @@ const BidDetailsPage = () => {
                                     src={book.coverImage}
                                     alt={book.name}
                                     onLoad={() => setImgLoaded(true)}
-                                    className="h-44 w-32 object-cover transition duration-300 ease-out group-hover:scale-105 group-hover:brightness-90 sm:h-48 sm:w-36"
+                                    className={`h-44 w-32 object-cover transition duration-300 ease-out group-hover:scale-105 group-hover:brightness-90 sm:h-48 sm:w-36 ${
+                                        isCancelled ? "grayscale-[35%]" : ""
+                                    }`}
                                 />
 
                                 <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 transition group-hover:bg-black/30">
@@ -231,21 +360,37 @@ const BidDetailsPage = () => {
                     </div>
 
                     {/* Auction Summary */}
-                    <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
-                        <div className="mb-5 flex items-center gap-3">
-                            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50 text-xl">
-                                🔨
+                    <div
+                        className={`rounded-2xl bg-white p-6 shadow-sm ring-1 ${
+                            isCancelled
+                                ? "ring-red-200"
+                                : "ring-gray-200"
+                        }`}
+                    >
+                        <div className="mb-5 flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                                <div
+                                    className={`flex h-11 w-11 items-center justify-center rounded-xl text-xl ${
+                                        isCancelled
+                                            ? "bg-red-50"
+                                            : "bg-amber-50"
+                                    }`}
+                                >
+                                    🔨
+                                </div>
+
+                                <div>
+                                    <h2 className="text-lg font-semibold text-gray-900">
+                                        Auction
+                                    </h2>
+
+                                    <p className="text-sm text-gray-500">
+                                        Current status
+                                    </p>
+                                </div>
                             </div>
 
-                            <div>
-                                <h2 className="text-lg font-semibold text-gray-900">
-                                    Auction
-                                </h2>
-
-                                <p className="text-sm text-gray-500">
-                                    Current status
-                                </p>
-                            </div>
+                            <StatusBadge status={auction.status} />
                         </div>
 
                         <div className="space-y-4">
@@ -261,10 +406,18 @@ const BidDetailsPage = () => {
 
                             <div className="flex items-center justify-between">
                                 <span className="text-sm text-gray-500">
-                                    Current Bid
+                                    {isCancelled
+                                        ? "Last Bid"
+                                        : "Current Bid"}
                                 </span>
 
-                                <span className="text-xl font-bold text-green-600">
+                                <span
+                                    className={`text-xl font-bold ${
+                                        isCancelled
+                                            ? "text-gray-400 line-through decoration-2"
+                                            : "text-green-600"
+                                    }`}
+                                >
                                     ₹{auction.currentBidPrice}
                                 </span>
                             </div>
@@ -274,7 +427,13 @@ const BidDetailsPage = () => {
                                     Buy Now
                                 </span>
 
-                                <span className="font-semibold text-gray-900">
+                                <span
+                                    className={`font-semibold ${
+                                        isCancelled
+                                            ? "text-gray-400 line-through decoration-2"
+                                            : "text-gray-900"
+                                    }`}
+                                >
                                     ₹{auction.buyNowPrice}
                                 </span>
                             </div>
@@ -304,6 +463,14 @@ const BidDetailsPage = () => {
                                     })}
                                 </p>
                             </div>
+
+                            {isCancelled && (
+                                <div className="rounded-lg bg-red-50 px-3 py-2 text-xs font-medium text-red-600 ring-1 ring-red-100">
+                                    Bidding closed — this auction was
+                                    cancelled and no further action
+                                    can be taken.
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -322,10 +489,16 @@ const BidDetailsPage = () => {
 
                     <div className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-200">
                         <p className="text-sm text-gray-500">
-                            Highest Bid
+                            {isCancelled ? "Last Bid" : "Highest Bid"}
                         </p>
 
-                        <p className="mt-1 text-2xl font-bold text-green-600">
+                        <p
+                            className={`mt-1 text-2xl font-bold ${
+                                isCancelled
+                                    ? "text-gray-400 line-through decoration-2"
+                                    : "text-green-600"
+                            }`}
+                        >
                             ₹{auction.currentBidPrice}
                         </p>
                     </div>
@@ -342,12 +515,23 @@ const BidDetailsPage = () => {
                 </div>
 
                 {/* Bids Table */}
-                <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-200">
+                <div
+                    className={`overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ${
+                        isCancelled ? "ring-red-200" : "ring-gray-200"
+                    }`}
+                >
                     <div className="flex flex-col justify-between gap-3 border-b border-gray-100 p-6 sm:flex-row sm:items-center">
                         <div>
-                            <h2 className="text-lg font-semibold text-gray-900">
-                                Bidder Rankings
-                            </h2>
+                            <div className="flex flex-wrap items-center gap-2">
+                                <h2 className="text-lg font-semibold text-gray-900">
+                                    Bidder Rankings
+                                </h2>
+                                {isCancelled && (
+                                    <span className="rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-600 ring-1 ring-red-200">
+                                        Final — bidding closed
+                                    </span>
+                                )}
+                            </div>
 
                             <p className="mt-1 text-sm text-gray-500">
                                 Bids are ranked from highest to lowest
@@ -410,7 +594,11 @@ const BidDetailsPage = () => {
                                         {bids.map((bid) => (
                                             <tr
                                                 key={bid._id}
-                                                className="transition hover:bg-gray-50"
+                                                className={`transition hover:bg-gray-50 ${
+                                                    isCancelled
+                                                        ? "opacity-80"
+                                                        : ""
+                                                }`}
                                             >
                                                 <td className="px-6 py-5">
                                                     <div
@@ -447,9 +635,16 @@ const BidDetailsPage = () => {
 
                                                             {bid.rank ===
                                                                 1 && (
-                                                                <span className="text-xs font-medium text-green-600">
-                                                                    Highest
-                                                                    bidder
+                                                                <span
+                                                                    className={`text-xs font-medium ${
+                                                                        isCancelled
+                                                                            ? "text-gray-400"
+                                                                            : "text-green-600"
+                                                                    }`}
+                                                                >
+                                                                    {isCancelled
+                                                                        ? "Was highest bidder"
+                                                                        : "Highest bidder"}
                                                                 </span>
                                                             )}
                                                         </div>
@@ -465,7 +660,13 @@ const BidDetailsPage = () => {
                                                 </td>
 
                                                 <td className="px-6 py-5 text-right">
-                                                    <span className="text-lg font-bold text-gray-900">
+                                                    <span
+                                                        className={`text-lg font-bold ${
+                                                            isCancelled
+                                                                ? "text-gray-400"
+                                                                : "text-gray-900"
+                                                        }`}
+                                                    >
                                                         ₹
                                                         {bid.bidPrice.toLocaleString(
                                                             "en-IN"
@@ -483,7 +684,11 @@ const BidDetailsPage = () => {
                                 {bids.map((bid) => (
                                     <div
                                         key={bid._id}
-                                        className="rounded-xl border border-gray-200 p-4"
+                                        className={`rounded-xl border border-gray-200 p-4 ${
+                                            isCancelled
+                                                ? "opacity-80"
+                                                : ""
+                                        }`}
                                     >
                                         <div className="flex items-start justify-between">
                                             <div className="flex items-center gap-3">
@@ -515,7 +720,13 @@ const BidDetailsPage = () => {
                                                 </div>
                                             </div>
 
-                                            <p className="font-bold text-green-600">
+                                            <p
+                                                className={`font-bold ${
+                                                    isCancelled
+                                                        ? "text-gray-400"
+                                                        : "text-green-600"
+                                                }`}
+                                            >
                                                 ₹
                                                 {bid.bidPrice.toLocaleString(
                                                     "en-IN"
