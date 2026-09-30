@@ -10,7 +10,6 @@ import {
 import {
     Rb_Image,
     Rb_Text,
-    Rb_LoadingSpinner,
 } from "@rentbook/rentbook-ui-lib";
 
 import { useAuctionBookDetails } from "../hooks/useAuctionBookDetails";
