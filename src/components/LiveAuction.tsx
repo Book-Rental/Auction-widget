@@ -223,20 +223,22 @@ const TrendingAuctionBooks = () => {
                                                     </p>
                                                 </div>
 
-                                                {/* Place Bid */}
-                                                <Rb_Button
-                                                    className="primary w-full"
-                                                    onClick={(e) =>
-                                                        handleBidClick(
-                                                            e,
-                                                            book._id
-                                                        )
-                                                    }
-                                                >
-                                                    Place Bid
-                                                </Rb_Button>
+                                                {/* Place Bid - Hidden for seller */}
+                                                {!isOwnAuction && (
+                                                    <Rb_Button
+                                                        className="primary w-full"
+                                                        onClick={(e) =>
+                                                            handleBidClick(
+                                                                e,
+                                                                book._id
+                                                            )
+                                                        }
+                                                    >
+                                                        Place Bid
+                                                    </Rb_Button>
+                                                )}
 
-                                                {/* View Bid Details */}
+                                                {/* View Bid Details - Only seller */}
                                                 {isOwnAuction && (
                                                     <Rb_Button
                                                         className="mt-2 w-full"
