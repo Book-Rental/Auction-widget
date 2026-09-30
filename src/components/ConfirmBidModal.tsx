@@ -96,7 +96,7 @@ const ConfirmBidModal = ({
                 </div>
 
                 <div className="flex justify-between">
-                    <Rb_Text
+                    {/* <Rb_Text
                         variant="p"
                         className="text-gray-500"
                     >
@@ -108,7 +108,7 @@ const ConfirmBidModal = ({
                         className="font-semibold"
                     >
                         {auctionEndsIn}
-                    </Rb_Text>
+                    </Rb_Text> */}
                 </div>
             </div>
 

@@ -5,6 +5,7 @@ import AuctionBidCard from "../components/AuctionBidCard";
 import AuctionBookDetails from "../components/AuctionBookDetails";
 import AuctionBookInfo from "../components/AuctionBookInfo";
 import { fetchAuctionBookById } from "../hooks/useAuctionBookDetails";
+import { Rb_LoadingSpinner } from "@rentbook/rentbook-ui-lib";
 
 const BidingPage = () => {
     const getBookIdFromUrl = () => {
@@ -72,9 +73,10 @@ const BidingPage = () => {
         );
     }
 
-    if (isLoading) {
-        return <div>Loading...</div>;
-    }
+   if (isLoading) {
+    return <Rb_LoadingSpinner />
+  }
+
 
     if (isError) {
         return (
