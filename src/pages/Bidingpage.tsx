@@ -9,61 +9,42 @@ import { Rb_LoadingSpinner } from "@rentbook/rentbook-ui-lib";
 
 const BidingPage = () => {
     const getBookIdFromUrl = () => {
-        const params = new URLSearchParams(
-            window.location.search
-        );
-
+        const params = new URLSearchParams(window.location.search);
         return params.get("id") || undefined;
     };
 
-    const [bookId, setBookId] = useState<
-        string | undefined
-    >(getBookIdFromUrl);
+    const [bookId, setBookId] = useState<string | undefined>(
+        getBookIdFromUrl()
+    );
 
     useEffect(() => {
         const handlePopState = () => {
             const id = getBookIdFromUrl();
-
-            console.log("BidingPage - Book ID:", id);
-
             setBookId(id);
         };
 
-        window.addEventListener(
-            "popstate",
-            handlePopState
-        );
+        window.addEventListener("popstate", handlePopState);
 
         return () => {
-            window.removeEventListener(
-                "popstate",
-                handlePopState
-            );
+            window.removeEventListener("popstate", handlePopState);
         };
     }, []);
 
     const {
         data: bookData,
-        isLoading,
+        isPending,
         isError,
     } = useQuery({
         queryKey: ["auction-book", bookId],
         queryFn: () => fetchAuctionBookById(bookId!),
-        enabled: !!bookId,
+        enabled: Boolean(bookId),
+        staleTime: 30 * 1000,
+        refetchOnWindowFocus: false,
     });
 
-    // Get auction ID from API response
-    const auctionId = bookData?.auctionId?._id;
-
-    // Get current bid from API response
-    const currentHighestBid =
-        bookData?.auctionId?.currentBidPrice ??
-        bookData?.auctionId?.bidPrice ??
-        0;
-
-    console.log("Auction Book Data:", bookData);
-    console.log("Auction ID:", auctionId);
-    console.log("Current Highest Bid:", currentHighestBid);
+    // ----------------------------------------
+    // Loading
+    // ----------------------------------------
 
     if (!bookId) {
         return (
@@ -73,10 +54,13 @@ const BidingPage = () => {
         );
     }
 
-   if (isLoading) {
-    return <Rb_LoadingSpinner />
-  }
+    if (isPending) {
+        return <Rb_LoadingSpinner />;
+    }
 
+    // ----------------------------------------
+    // Error
+    // ----------------------------------------
 
     if (isError) {
         return (
@@ -86,6 +70,10 @@ const BidingPage = () => {
         );
     }
 
+    // ----------------------------------------
+    // No book
+    // ----------------------------------------
+
     if (!bookData) {
         return (
             <div className="rounded-2xl border border-gray-200 bg-white p-6 text-center text-gray-500">
@@ -93,6 +81,17 @@ const BidingPage = () => {
             </div>
         );
     }
+
+    // ----------------------------------------
+    // Auction information
+    // ----------------------------------------
+
+    const auctionId = bookData.auctionId?._id;
+
+    const currentHighestBid =
+        bookData.auctionId?.currentBidPrice ??
+        bookData.auctionId?.bidPrice ??
+        0;
 
     if (!auctionId) {
         return (
@@ -102,38 +101,36 @@ const BidingPage = () => {
         );
     }
 
+    // ----------------------------------------
+    // Page
+    // ----------------------------------------
+
     return (
-        <div className="min-h-screen">
-            <div className="px-10 py-10">
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+    <div className="min-h-screen">
+        <div className="px-10 py-10">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+                {/* Book Information */}
+                <div className="lg:col-span-7">
+                    <AuctionBookInfo bookId={bookId} />
+                </div>
 
-                    {/* Book Information */}
-                    <div className="lg:col-span-7">
-                        <AuctionBookInfo
-                            bookId={bookId}
-                        />
-                    </div>
-
-                    {/* Bidding Card */}
-                    <div className="lg:col-span-5">
-                        <AuctionBidCard
-                            auctionId={auctionId}
-                            bookId={bookId}
-                            bookTitle="Book"
-                            currentHighestBid={
-                                currentHighestBid
-                            }
-                        />
-                    </div>
+                {/* Bidding Card */}
+                <div className="lg:col-span-5">
+                    <AuctionBidCard
+                        auctionId={auctionId}
+                        bookId={bookId}
+                        bookTitle="Book"
+                        currentHighestBid={currentHighestBid}
+                    />
                 </div>
             </div>
-
-            {/* Book Details */}
-            <div className="px-10 pb-10">
-                <AuctionBookDetails />
-            </div>
         </div>
-    );
+
+        <div className="px-10 pb-10">
+            <AuctionBookDetails />
+        </div>
+    </div>
+);
 };
 
 export default BidingPage;
