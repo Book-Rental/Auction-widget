@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Info, Bell, Loader2, Inbox } from "lucide-react";
-import { Rb_Button } from "@rentbook/rentbook-ui-lib";
+import { Rb_Button, Rb_Image } from "@rentbook/rentbook-ui-lib";
 
 import { useMyBids, MyBid } from "../hooks/useMyBids";
 
@@ -373,7 +373,7 @@ const MyBids = () => {
                                         >
                                             {/* Book */}
                                             <div className="col-span-5 flex items-center gap-4">
-                                                <img
+                                                <Rb_Image
                                                     src={
                                                         item.book?.coverImage
                                                     }
@@ -611,7 +611,7 @@ const MyBids = () => {
                                             }`}
                                         >
                                             <div className="flex gap-3">
-                                                <img
+                                                <Rb_Image
                                                     src={
                                                         item.book?.coverImage
                                                     }
