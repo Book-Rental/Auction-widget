@@ -1,3 +1,4 @@
+
 import React from "react";
 import {
     Rb_Button,
@@ -19,12 +20,12 @@ const TrendingAuctionBooks = () => {
         isError,
     } = useAuctionBooks();
 
+    const userId = window.HOST_USER_INFO?._id ?? "";
+
     const handleViewAllClick = () => {
         window.history.pushState({}, "", "/auction");
 
-        window.dispatchEvent(
-            new PopStateEvent("popstate")
-        );
+        window.dispatchEvent(new PopStateEvent("popstate"));
     };
 
     const handleBookClick = (bookId: string) => {
@@ -34,9 +35,7 @@ const TrendingAuctionBooks = () => {
             `/bidding?id=${bookId}`
         );
 
-        window.dispatchEvent(
-            new PopStateEvent("popstate")
-        );
+        window.dispatchEvent(new PopStateEvent("popstate"));
     };
 
     const handleBidClick = (
@@ -51,9 +50,17 @@ const TrendingAuctionBooks = () => {
             `/bidding?id=${bookId}`
         );
 
-        window.dispatchEvent(
-            new PopStateEvent("popstate")
-        );
+        window.dispatchEvent(new PopStateEvent("popstate"));
+    };
+
+    const handleViewClick = (
+        e: React.MouseEvent<HTMLButtonElement>,
+        auctionId: string
+    ) => {
+        e.stopPropagation();
+
+        window.location.href =
+            `https://fe-book-rental-host.onrender.com/bid-details/${auctionId}`;
     };
 
     const getStatusClasses = (status?: string) => {
@@ -82,7 +89,6 @@ const TrendingAuctionBooks = () => {
     return (
         <section className="mt-8 w-full">
             <div className="mx-10 my-10">
-
                 {/* Header */}
                 <div className="mb-5 flex items-center justify-between">
                     <Rb_Text
@@ -119,8 +125,7 @@ const TrendingAuctionBooks = () => {
                     !isError &&
                     auctionBooks.length === 0 && (
                         <div className="py-10 text-center text-gray-500">
-                            No books are currently available
-                            for auction.
+                            No books are currently available for auction.
                         </div>
                     )}
 
@@ -131,12 +136,34 @@ const TrendingAuctionBooks = () => {
                         <div className="flex gap-10 overflow-x-auto overflow-y-hidden scroll-smooth py-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                             {auctionBooks.map(
                                 (book: AuctionBook) => {
-
                                     // Get only the active auction
                                     const auction =
                                         book.auction?.find(
                                             (auction) =>
                                                 auction.isActive === true
+                                        );
+
+                                    const sellerId =
+                                        book.sellerId ?? "";
+
+                                    const isOwnAuction =
+                                        Boolean(
+                                            userId &&
+                                            sellerId &&
+                                            userId === sellerId
+                                        );
+
+                                    const bidCount =
+                                        auction?.bidCount ?? 0;
+
+                                    const hasBids =
+                                        bidCount > 0;
+
+                                    const canViewBidDetails =
+                                        isOwnAuction &&
+                                        hasBids &&
+                                        Boolean(
+                                            auction?._id
                                         );
 
                                     return (
@@ -165,7 +192,6 @@ const TrendingAuctionBooks = () => {
                                             >
                                                 {/* Auction Details */}
                                                 <div className="mb-3 space-y-2 text-sm text-gray-600">
-
                                                     {/* Status */}
                                                     <div className="flex items-center justify-between">
                                                         <span className="font-medium text-gray-500">
@@ -184,7 +210,7 @@ const TrendingAuctionBooks = () => {
 
                                                     {/* Time Left */}
                                                     <p className="font-bold text-red-600">
-                                                        {auction?.status ===
+                                                        {auction?.status?.toLowerCase() ===
                                                         "live"
                                                             ? `${auction.duration} days auction`
                                                             : auction?.status ??
@@ -193,9 +219,7 @@ const TrendingAuctionBooks = () => {
 
                                                     {/* Number of Bids */}
                                                     <p>
-                                                        {auction?.bidCount ??
-                                                            0}{" "}
-                                                        bids
+                                                        {bidCount} bids
                                                     </p>
                                                 </div>
 
@@ -211,6 +235,31 @@ const TrendingAuctionBooks = () => {
                                                 >
                                                     Place Bid
                                                 </Rb_Button>
+
+                                                {/* View Bid Details */}
+                                                {isOwnAuction && (
+                                                    <Rb_Button
+                                                        className="mt-2 w-full"
+                                                        disabled={
+                                                            !canViewBidDetails
+                                                        }
+                                                        onClick={(e) => {
+                                                            if (
+                                                                !canViewBidDetails
+                                                            ) {
+                                                                e.stopPropagation();
+                                                                return;
+                                                            }
+
+                                                            handleViewClick(
+                                                                e,
+                                                                auction!._id
+                                                            );
+                                                        }}
+                                                    >
+                                                        View
+                                                    </Rb_Button>
+                                                )}
                                             </ProductCard>
                                         </div>
                                     );
@@ -224,3 +273,4 @@ const TrendingAuctionBooks = () => {
 };
 
 export default TrendingAuctionBooks;
+

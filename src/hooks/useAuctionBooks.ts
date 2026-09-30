@@ -27,6 +27,7 @@ export interface AuctionDetails {
 }
 
 export interface AuctionBook {
+    sellerId: string;
     _id: string;
     name: string;
     author: string;
