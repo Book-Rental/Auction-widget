@@ -24,7 +24,6 @@ const ConfirmBidModal = ({
     bidAmount,
     bookTitle,
     currentHighestBid,
-    auctionEndsIn = "2d 14h 20m 45s",
     isSubmitting = false,
 }: ConfirmBidModalProps) => {
     return (
