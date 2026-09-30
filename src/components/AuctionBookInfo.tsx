@@ -183,7 +183,7 @@ const AuctionBookInfo = ({
     if (isLoading) {
         return (
             <div className="flex min-h-[300px] items-center justify-center rounded-2xl border border-gray-200 bg-white shadow-sm">
-                <Rb_LoadingSpinner />
+                {/* <Rb_LoadingSpinner /> */}
             </div>
         );
     }
